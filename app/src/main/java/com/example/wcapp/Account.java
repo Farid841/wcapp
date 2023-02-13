@@ -26,6 +26,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class Account extends AppCompatActivity {
     private TextView apiText;
     private Button Retour;
+    private String id_user;
     private String AUTH = "Basic " + Base64.encodeToString("hbella:bella7905Hb@".getBytes(), Base64.NO_WRAP);
     private OkHttpClient client = new OkHttpClient.Builder()
             .addInterceptor(new Interceptor() {
@@ -44,11 +45,17 @@ public class Account extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_account);
+
+        Intent intent_user = getIntent();
+        id_user = intent_user.getStringExtra("id_user");
+
+
         apiText = findViewById(R.id.textView);
 
         Retour = findViewById(R.id.Retour);
         Retour.setOnClickListener(v -> {
             Intent intent = new Intent(Account.this, MainActivity.class);
+            intent.putExtra("id_user", id_user);
             startActivity(intent);
         });
 
@@ -72,10 +79,16 @@ public class Account extends AppCompatActivity {
                 }
                 List<User> users = response.body();
                 for (User user : users) {
-                    String content = "";
-                    content += "User: " + user.getUser();
-                    content += "Id: " + user.getId();
-                    apiText.setText(user.getUser());
+                    if(user.getId().equals(id_user)){
+                        String content = "";
+                        content += "User: " + user.getUser();
+                        content += "Id: " + user.getId();
+                        apiText.setText(user.getUser());
+                    }else{
+                        apiText.setText("User not found");
+                    }
+
+
                 }
             }
 

@@ -124,16 +124,23 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private Boolean LoggedIn = false;
 
+    private String id_user;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        requestWindowFeature(Window.FEATURE_NO_TITLE);
+        supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        //if(LoggedIn == false){
-            //Intent intent = new Intent(MainActivity.this, Login.class);
-          //  startActivity(intent);
-        //}
+        Intent intent_logged = getIntent();
+        if(intent_logged.hasExtra("id_user")){
+            LoggedIn = true;
+            id_user = intent_logged.getStringExtra("id_user");
+        }
+        if(!LoggedIn){
+            Intent intent = new Intent(MainActivity.this, Login.class);
+            startActivity(intent);
+        }
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
@@ -146,6 +153,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
             account.setOnClickListener(v -> {
               Intent intent = new Intent(MainActivity.this, Account.class);
+              intent.putExtra("id_user",id_user);
                 startActivity(intent);
             });
 //
@@ -329,22 +337,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         //marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
                         map.getOverlays().add(marker);
                         map.invalidate();
-                        mapController.setZoom(18d);
+                        mapController.setZoom(11d);
                         myMarkers.add(marker);
-                        RoadManager roadManager = new OSRMRoadManager(that, "ROUTE");
-
-                       // roadManager.addRequestOption("routeType=pedestrian");
-                        //((OSRMRoadManager)roadManager).setMean(OSRMRoadManager.MEAN_BY_FOOT);
-                        ArrayList<GeoPoint> waypoints = new ArrayList<GeoPoint>();
-                        waypoints.clear();
-
-                        GeoPoint debut = new GeoPoint(48.7109946,2.1708547);
-                        waypoints.add(debut);
-                        GeoPoint endPoint = new GeoPoint(48.4, -1.9); waypoints.add(geoPoint);
-                        Road road = roadManager.getRoad(waypoints);
-                        Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
-                        map.getOverlays().add(roadOverlay);
-                        map.invalidate();
 
                     } else {
                         // Si le marqueur n'existe pas, créer un nouveau marqueur et l'ajouter à la carte
@@ -353,7 +347,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                         marker.setTitle("Adresse");
                         map.getOverlays().add(marker);
                         map.invalidate();
-                        mapController.setZoom(18d);
+                        mapController.setZoom(11d);
 
                     }
 
