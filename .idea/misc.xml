@@ -1,6 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="Android Studio default JDK" project-jdk-type="JavaSDK">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/account.xml" value="0.263" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/file_icon.xml" value="0.125" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/here.xml" value="0.1825" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/ic_baseline_location_on_24.xml" value="0.1155" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/localisation.xml" value="0.1155" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/plus.xml" value="0.125" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/rectangle.xml" value="0.18" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/round_btn.xml" value="0.25" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/search.xml" value="0.2445" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/searchbar.xml" value="0.201" />
+        <entry key="..\:/android/WCapp/app/src/main/res/drawable/wc.xml" value="0.1825" />
+        <entry key="..\:/android/WCapp/app/src/main/res/layout/activity_main.xml" value="0.33" />
+        <entry key="..\:/android/WCapp/app/src/main/res/layout/modal.xml" value="0.2" />
+        <entry key="..\:/android/WCapp/app/src/main/res/xml/searchable.xml" value="0.346875" />
+      </map>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_11" default="true" project-jdk-name="11" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/build/classes" />
   </component>
   <component name="ProjectType">
