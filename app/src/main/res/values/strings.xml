@@ -17,4 +17,5 @@
     <string name="username">Username</string>
     <string name="mot_de_passe">Mot de passe</string>
     <string name="connexion">Connexion</string>
+    <string name="continuer_sans_connexion">Continuer sans connexion</string>
 </resources>

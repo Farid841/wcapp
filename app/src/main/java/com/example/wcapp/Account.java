@@ -27,6 +27,8 @@ public class Account extends AppCompatActivity {
     private TextView apiText;
     private Button Retour;
     private String id_user;
+
+    private Button btnLogout;
     private String AUTH = "Basic " + Base64.encodeToString("hbella:bella7905Hb@".getBytes(), Base64.NO_WRAP);
     private OkHttpClient client = new OkHttpClient.Builder()
             .addInterceptor(new Interceptor() {
@@ -52,10 +54,18 @@ public class Account extends AppCompatActivity {
 
         apiText = findViewById(R.id.textView);
 
+        btnLogout = findViewById(R.id.logout);
+
         Retour = findViewById(R.id.Retour);
         Retour.setOnClickListener(v -> {
             Intent intent = new Intent(Account.this, MainActivity.class);
             intent.putExtra("id_user", id_user);
+            startActivity(intent);
+        });
+
+        btnLogout.setOnClickListener(v -> {
+            Intent intent = new Intent(Account.this, MainActivity.class);
+            intent.putExtra("logout", true);
             startActivity(intent);
         });
 
@@ -85,7 +95,9 @@ public class Account extends AppCompatActivity {
                         content += "Id: " + user.getId();
                         apiText.setText(user.getUser());
                     }else{
-                        apiText.setText("User not found");
+                        Intent back = new Intent(Account.this, Login.class);
+                        startActivity(back);
+
                     }
 
 

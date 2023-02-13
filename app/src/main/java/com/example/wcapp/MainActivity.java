@@ -66,6 +66,7 @@ import com.google.gson.GsonBuilder;
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
 import org.osmdroid.views.overlay.Overlay;
+import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
 import org.osmdroid.views.overlay.TilesOverlay;
 
@@ -134,8 +135,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         Intent intent_logged = getIntent();
         if(intent_logged.hasExtra("id_user")){
-            LoggedIn = true;
-            id_user = intent_logged.getStringExtra("id_user");
+
+                LoggedIn = true;
+                id_user = intent_logged.getStringExtra("id_user");
+        }
+        if(intent_logged.hasExtra("logout") ){
+            LoggedIn = false;
         }
         if(!LoggedIn){
             Intent intent = new Intent(MainActivity.this, Login.class);
@@ -334,11 +339,13 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                             }
 
                         }
+
                         //marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-                        map.getOverlays().add(marker);
-                        map.invalidate();
+
+
                         mapController.setZoom(11d);
                         myMarkers.add(marker);
+                        map.invalidate();
 
                     } else {
                         // Si le marqueur n'existe pas, créer un nouveau marqueur et l'ajouter à la carte
@@ -424,13 +431,14 @@ public  void FetchData(){
                 content +=  wc.getLongi();
                 content +=  wc.getLati();
 
-                double lati = Double.parseDouble(wc.getLati());
-                double longi = Double.parseDouble(wc.getLongi());
+                double lati = wc.getLati();
+                double longi = wc.getLongi();
 
 
                 marker.setPosition(new GeoPoint(lati,longi));
                 marker.setId(wc.getId());
                 marker.setTitle(wc.getDescr());
+                marker.setSubDescription("Note : " + wc.getNote());
                 Geocoder texttoaddress = new Geocoder(MainActivity.this);
                 List<Address> addresses = null;
                 try {
@@ -574,13 +582,43 @@ public void Itiniraire(GeoPoint p){
                             Gson gson = new GsonBuilder()
                                     .setLenient()
                                     .create();
-                            Retrofit retrofit = new Retrofit.Builder()
-                                    .baseUrl("https://webdev.iut-orsay.fr/~nabitb1/WCapp/?longi="+longitude+"&lati="+latitude+"&descr="+ URLEncoder.encode(adressadd.getText().toString()))
-                                    .client(client)
 
+                            Retrofit retrofit = new Retrofit.Builder()
+                                    .baseUrl("https://webdev.iut-orsay.fr/~nabitb1/WCapp/")
+                                    .client(client)
                                     .addConverterFactory(GsonConverterFactory.create(gson))
                                     .build();
-                            Log.d("test", "https://webdev.iut-orsay.fr/~nabitb1/WCapp/?longi="+longitude+"&lati="+latitude+"&descr="+URLEncoder.encode(adressadd.getText().toString()));
+
+                           WcInterface wcInterface =  retrofit.create(WcInterface.class);
+
+                            WcAPI wcAPI = new WcAPI(
+                                    longitude,
+                                    latitude,
+                                    URLEncoder.encode(adressadd.getText().toString()),
+                                    "0",
+                                    "null"
+                            );
+
+                           Call<List<WcAPI>>call = wcInterface.postWcAPI(longitude, latitude,  URLEncoder.encode(adressadd.getText().toString()),id_user,"0", "null");
+
+                            call.enqueue(new Callback<List<WcAPI>>() {
+
+                                @Override
+                                public void onResponse(Call<List<WcAPI>> call, retrofit2.Response<List<WcAPI>> response) {
+                                    if (response.isSuccessful()) {
+                                        Toast.makeText(MainActivity.this, "WC ajouté", Toast.LENGTH_SHORT).show();
+                                        Log.i("Post submitted to API.", wcAPI.toString());
+                                    } else {
+                                        Toast.makeText(MainActivity.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                             public void onFailure(Call<List<WcAPI>> call, Throwable t) {
+                                                 Toast.makeText(MainActivity.this,  t.getMessage(), Toast.LENGTH_LONG).show();
+                                                 Log.e("ERROR: ", t.getMessage());
+                                             }
+                                         });
 
 
 

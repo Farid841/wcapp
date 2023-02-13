@@ -31,6 +31,7 @@ public class Login extends AppCompatActivity {
 
     TextView resultapii;
     Button Connexion;
+    Button sansconnexion;
     EditText username, password;
     ImageView logo;
 
@@ -64,6 +65,12 @@ public class Login extends AppCompatActivity {
             Connexion.setText("Connexion en cours");
             Connexion.setEnabled(false);
 
+        });
+        sansconnexion = findViewById(R.id.sansconnexion);
+        sansconnexion.setOnClickListener(v -> {
+            Intent intent = new Intent(Login.this, MainActivity.class);
+            intent.putExtra("id_user", "null");
+            startActivity(intent);
         });
 
 
@@ -130,7 +137,11 @@ public class Login extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<List<User>> call, Throwable t) {
-                resultapii.setText(t.getMessage());
+                resultapii.setText("Erreur de connexion avec le serveur, veuillez réessayer ultérieurement");
+                resultapii.setTextColor(Color.RED);
+                resultapii.setTextSize(20);
+                Connexion.setText("Connexion");
+                Connexion.setEnabled(true);
             }
         });
 
