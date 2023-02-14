@@ -16,9 +16,11 @@ import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.CustomZoomButtonsController;
+import org.osmdroid.views.MapController;
 import org.osmdroid.views.MapView;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -68,6 +70,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
+
     private static final String AUTH = "Basic " + Base64.encodeToString("hbella:bella7905Hb@".getBytes(), Base64.NO_WRAP);
     private final OkHttpClient client = new OkHttpClient.Builder()
             .addInterceptor(chain -> {
@@ -78,125 +81,70 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             })
             .build();
     private SearchView searchView ;
-
     private MapView map;
-
     private EditText adressadd;
     AlertDialog alert_adresse;
     AlertDialog alert_itiniraire;
     private GeoPoint actual_location;
-
-
     private IMapController mapController;
     private LocationManager locationManager;
-
-
-
     private final ArrayList<GeoPoint> waypoints_iti = new ArrayList<>();
-
     private Boolean LoggedIn = false;
-
     private String id_user;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         supportRequestWindowFeature(Window.FEATURE_NO_TITLE);
         this.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        Intent intent_logged = getIntent();
-        if(intent_logged.hasExtra("id_user")){
+        //Verification si l'utilisateur est connecté ou non.
+        VerificationUser();
 
-                LoggedIn = true;
-                id_user = intent_logged.getStringExtra("id_user");
-        }
-        if(intent_logged.hasExtra("logout") ){
-            LoggedIn = false;
-        }
-        if(!LoggedIn){
-            Intent intent = new Intent(MainActivity.this, Login.class);
-            startActivity(intent);
-        }
+        //Initialisation de la vue
         setContentView(R.layout.activity_main);
         StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
         StrictMode.setThreadPolicy(policy);
 
-        // Initialiser la vue de la carte
+        //Initialisation de la carte
+        InitialiserCarte();
+        //Initialisation des boutons
+        InitialiserBoutons();
+        //Initialisation de la barre de recherche
+        InitialiserSearchView();
 
-        MaterialButton localiser = findViewById(R.id.localiser);
-        MaterialButton add = findViewById(R.id.add);
-        MaterialButton account = findViewById(R.id.account);
-
-            account.setOnClickListener(v -> {
-              Intent intent = new Intent(MainActivity.this, Account.class);
-              intent.putExtra("id_user",id_user);
-                startActivity(intent);
-            });
-//
-        map = findViewById(R.id.map);
-
-        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line);
-        searchView = findViewById(R.id.searchview);
-        ListView list = findViewById(R.id.list);
-        list.setAdapter(adapter);
-        Configuration.getInstance().setUserAgentValue(getPackageName());
-
-        final ITileSource tileSource = TileSourceFactory.DEFAULT_TILE_SOURCE;
-
-        map.setTileSource(tileSource);
-       map.setBuiltInZoomControls(false);
-        map.setMultiTouchControls(true);
-        map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
-
-        //Charger les données de l'API
+        //Initialisation des marqueurs
         FetchData();
 
+        //Initialisation du gestionnaire de localisation
+        InitialiserLocationManager();
 
-//         Obtenir le contrôleur de la carte et définir la position initiale et le niveau de zoom
-        mapController = map.getController();
-        mapController.setZoom(12.00d);
-        GeoPoint startPoint = new GeoPoint(48.7109981, 2.168666);
-        mapController.setCenter(startPoint);
-        map.setTilesScaledToDpi(true);
-       // Geocoder geocoder = new Geocoder(MainActivity.this);
-
-
-//         Initialiser le gestionnaire de localisation
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-
-
-
+        //Check des permissions
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             // Demande de permission à l'utilisateur si nécessaire
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, 1);
-
-
         } else {
             // Demander les mises à jour de localisation si la permission a été accordée
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 20, this);
         }
 
+        //Listener sur la carte pour la localisation
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 2000, 20, this);
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 2000, 20, this);
 
 
+            }
 
-        add.setOnClickListener((v -> Modal()));
+    private void InitialiserLocationManager() {
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        MainActivity that = this;
-        localiser.setOnClickListener((v -> {
-            Toast.makeText(this, "Localisation mis à jour", Toast.LENGTH_SHORT).show();
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 50, this);
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 50, this);
+    }
 
-
-
-
-
-        }));
-
+    private void InitialiserSearchView() {
+        final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line);
+        searchView = findViewById(R.id.searchview);
+        ListView list = findViewById(R.id.list);
+        list.setAdapter(adapter);
+        Configuration.getInstance().setUserAgentValue(getPackageName());
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
             @Override
@@ -277,31 +225,86 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     Toast.makeText(MainActivity.this, "Aucun résultat trouvé", Toast.LENGTH_SHORT).show();
                 }
 
-                    // Masquer le clavier virtuel
+                // Masquer le clavier virtuel
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(searchView.getWindowToken(), 0);
 
-                    // Annuler la recherche
+                // Annuler la recherche
                 return true;
             }
         });
 
+    }
+
+    @SuppressLint("MissingPermission")
+    private void InitialiserBoutons() {
+
+        MaterialButton localiser = findViewById(R.id.localiser);
+        MaterialButton add = findViewById(R.id.add);
+        MaterialButton account = findViewById(R.id.account);
+        MaterialButton wclist = findViewById(R.id.wclist);
+
+        wclist.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, WcList.class);
+            intent.putExtra("id_user",id_user);
+            startActivity(intent);
+        });
+
+        account.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, Account.class);
+            intent.putExtra("id_user",id_user);
+            startActivity(intent);
+        });
+        add.setOnClickListener((v -> Modal()));
+        localiser.setOnClickListener((v -> {
+            Toast.makeText(this, "Localisation mis à jour", Toast.LENGTH_SHORT).show();
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 10000, 50, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10000, 50, this);
+
+        }));
+
+    }
+
+    private void VerificationUser() {
+        Intent intent_logged = getIntent();
+        if(intent_logged.hasExtra("id_user")){
+
+            LoggedIn = true;
+            id_user = intent_logged.getStringExtra("id_user");
+        }
+        if(intent_logged.hasExtra("logout") ){
+            LoggedIn = false;
+        }
+        if(!LoggedIn){
+            Intent intent = new Intent(MainActivity.this, Login.class);
+            startActivity(intent);
+        }
+    }
+
+    private void InitialiserCarte() {
+        map = findViewById(R.id.map);
+        map.setTileSource(TileSourceFactory.MAPNIK);
+        map.setBuiltInZoomControls(true);
+        map.setMultiTouchControls(true);
+        mapController = (MapController) map.getController();
+        mapController.setZoom(16d);
+        mapController.setCenter(new GeoPoint(48.697, 2.287));
+        map.setTilesScaledToDpi(true);
+        map.setMinZoomLevel(10.0);
+        map.setMaxZoomLevel(20.0);
+        map.setFlingEnabled(true);
+        map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
 
 
-            }
+    }
 
 
-
-
-public  void FetchData(){
+    public  void FetchData(){
     MapEventsReceiver mReceive = new MapEventsReceiver() {
         @Override
         public boolean singleTapConfirmedHelper(GeoPoint p) {
-
-
-
-
-
 
             return false;
         }
@@ -313,7 +316,6 @@ public  void FetchData(){
         }
     };
     MapEventsOverlay OverlayEvents = new MapEventsOverlay(getBaseContext(), mReceive);
-
 
     Gson gson = new GsonBuilder()
             .setLenient()
@@ -386,98 +388,93 @@ public  void FetchData(){
 }
 
 
-public void Itiniraire(GeoPoint p){
-    AlertDialog.Builder alert_builder = new AlertDialog.Builder(this);
-    alert_builder.setView(R.layout.itiniraire)
-            .setTitle("Itinéraire")
-            .setMessage("Voulez-vous créer un itinéraire ?");
+    public void Itiniraire(GeoPoint p){
+        AlertDialog.Builder alert_builder = new AlertDialog.Builder(this);
+        alert_builder.setView(R.layout.itiniraire)
+                .setTitle("Itinéraire")
+                .setMessage("Voulez-vous créer un itinéraire ?");
 
 
 
-    alert_builder.setPositiveButton("Commencer", (dialogInterface, i) -> {
-        RoadManager roadManager = new OSRMRoadManager(MainActivity.this, "itineraire");
+        alert_builder.setPositiveButton("Commencer", (dialogInterface, i) -> {
+            RoadManager roadManager = new OSRMRoadManager(MainActivity.this, "itineraire");
 
 
-        if(actual_location == null){
-            Toast.makeText(MainActivity.this, "Veuillez attendre que la localisation soit chargée", Toast.LENGTH_SHORT).show();
-            actual_location = new GeoPoint(48.697, 2.176);
-        }else {
-            map.getOverlays().clear();
-            FetchData();
-            waypoints_iti.clear();
-            GeoPoint debut = actual_location;
-            waypoints_iti.add(debut);
-            GeoPoint endPoint = p;
-            waypoints_iti.add(endPoint);
+            if(actual_location == null){
+                Toast.makeText(MainActivity.this, "Veuillez attendre que la localisation soit chargée", Toast.LENGTH_SHORT).show();
+                actual_location = new GeoPoint(48.697, 2.176);
+            }else {
+                map.getOverlays().clear();
+                FetchData();
+                waypoints_iti.clear();
+                GeoPoint debut = actual_location;
+                waypoints_iti.add(debut);
+                GeoPoint endPoint = p;
+                waypoints_iti.add(endPoint);
 
-            Road road = roadManager.getRoad(waypoints_iti);
-            Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
-            roadOverlay.setColor(Color.RED);
-            roadOverlay.setWidth(10);
-            map.getOverlays().add(roadOverlay);
+                Road road = roadManager.getRoad(waypoints_iti);
+                Polyline roadOverlay = RoadManager.buildRoadOverlay(road);
+                roadOverlay.setColor(Color.RED);
+                roadOverlay.setWidth(10);
+                map.getOverlays().add(roadOverlay);
 
-            Drawable nodeIcon = getResources().getDrawable(R.drawable.step);
-            for (int y=0; y<road.mNodes.size(); y++){
-                RoadNode node = road.mNodes.get(y);
-                Marker nodeMarker = new Marker(map);
-                nodeMarker.setPosition(node.mLocation);
-                nodeMarker.setIcon(nodeIcon);
-                nodeMarker.setTitle("Step "+y);
-                map.getOverlays().add(nodeMarker);
-                nodeMarker.setSnippet(node.mInstructions);
-                nodeMarker.setSubDescription(Road.getLengthDurationText(MainActivity.this, node.mLength, node.mDuration));
-                Drawable icon = getResources().getDrawable(R.drawable.wc);
-                nodeMarker.setImage(icon);
+                Drawable nodeIcon = getResources().getDrawable(R.drawable.step);
+                for (int y=0; y<road.mNodes.size(); y++){
+                    RoadNode node = road.mNodes.get(y);
+                    Marker nodeMarker = new Marker(map);
+                    nodeMarker.setPosition(node.mLocation);
+                    nodeMarker.setIcon(nodeIcon);
+                    nodeMarker.setTitle("Step "+y);
+                    map.getOverlays().add(nodeMarker);
+                    nodeMarker.setSnippet(node.mInstructions);
+                    nodeMarker.setSubDescription(Road.getLengthDurationText(MainActivity.this, node.mLength, node.mDuration));
+                    Drawable icon = getResources().getDrawable(R.drawable.wc);
+                    nodeMarker.setImage(icon);
+
+                }
+
+
+                map.invalidate();
+
+
+
+                Toast.makeText(MainActivity.this, "Itinéraire débuté", Toast.LENGTH_SHORT).show();
 
             }
+        });
+        alert_itiniraire = alert_builder.create();
 
+        alert_itiniraire.show();
 
-            map.invalidate();
-
-
-
-            Toast.makeText(MainActivity.this, "Itinéraire débuté", Toast.LENGTH_SHORT).show();
-
+        TextView info = (TextView) alert_itiniraire.findViewById(R.id.info);
+        Geocoder texttoaddress = new Geocoder(MainActivity.this);
+        List<Address> addresses = null;
+        try {
+            addresses = texttoaddress.getFromLocation(p.getLatitude(), p.getLongitude(), 1);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-    });
-    alert_itiniraire = alert_builder.create();
+        if (addresses != null && addresses.size() > 0) {
+            // Si une adresse a été trouvée, récupérer les coordonnées de l'adresse
+            Address address = addresses.get(0);
+            info.setText(addresses.get(0).getAddressLine(0));
+            info.setTextSize(20);
+        }else {
+            info.setText("Adresse inconnue");
+            info.setTextSize(20);
+        }
 
-    alert_itiniraire.show();
 
-    TextView info = (TextView) alert_itiniraire.findViewById(R.id.info);
-    Geocoder texttoaddress = new Geocoder(MainActivity.this);
-    List<Address> addresses = null;
-    try {
-        addresses = texttoaddress.getFromLocation(p.getLatitude(), p.getLongitude(), 1);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-    if (addresses != null && addresses.size() > 0) {
-        // Si une adresse a été trouvée, récupérer les coordonnées de l'adresse
-        Address address = addresses.get(0);
-        info.setText(addresses.get(0).getAddressLine(0));
-        info.setTextSize(20);
-    }else {
-        info.setText("Adresse inconnue");
-        info.setTextSize(20);
     }
 
 
-}
 
-
-
-            public void Modal(){
+    public void Modal(){
                 Geocoder texttoaddress = new Geocoder(MainActivity.this);
                 AlertDialog.Builder alert_builder = new AlertDialog.Builder(this);
                 alert_builder.setView(R.layout.modal)
                         .setTitle("Ajouter des WC")
                         .setMessage("Entrez l'adresse et une description si nécessaire.");
-
-
-//
-//
-//
 
                 alert_builder.setPositiveButton("Ajouter", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int whichButton) {

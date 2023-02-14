@@ -6,39 +6,21 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <com.google.android.material.button.MaterialButton
-        android:id="@+id/account"
+        android:id="@+id/wclist"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:layout_marginStart="50dp"
-        android:layout_marginEnd="20dp"
-        android:layout_marginBottom="30dp"
-        android:background="@drawable/round_btn"
-        android:drawableStart="@drawable/plus"
-        app:backgroundTint="@color/violet"
-        app:icon="@drawable/account"
-        app:iconGravity="textStart"
-        app:iconPadding="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/localiser"
-        tools:ignore="SpeakableTextPresentCheck" />
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/localiser"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/round_btn"
-        android:tint="#4C4B7B"
 
         app:backgroundTint="@color/violet"
-        app:icon="@drawable/localisation"
+        app:icon="@drawable/wclisticone"
+
         app:iconGravity="textStart"
         app:iconPadding="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@+id/account"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="SpeakableTextPresentCheck" />
 
@@ -47,17 +29,48 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
 
-        android:layout_marginStart="20dp"
-        android:layout_marginEnd="50dp"
+        android:layout_marginStart="30dp"
         android:layout_marginBottom="30dp"
         android:background="@drawable/round_btn"
         app:backgroundTint="@color/violet"
         app:icon="@drawable/plus"
+
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
 
-        app:layout_constraintEnd_toStartOf="@+id/localiser"
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/account"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="30dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/round_btn"
+        android:drawableStart="@drawable/plus"
+        app:backgroundTint="@color/violet"
+        app:icon="@drawable/account"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/localiser"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:ignore="SpeakableTextPresentCheck" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/localiser"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginStart="30dp"
+
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/round_btn"
+        android:tint="#4C4B7B"
+        app:backgroundTint="@color/violet"
+        app:icon="@drawable/btnloca"
+        app:iconGravity="textStart"
+        app:iconPadding="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/add"
         app:layout_constraintStart_toStartOf="parent"
         tools:ignore="SpeakableTextPresentCheck" />
 
@@ -84,7 +97,7 @@
         android:layout_marginStart="15dp"
         android:layout_marginTop="20dp"
         android:layout_marginEnd="15dp"
-        android:background="@drawable/rectangle"
+        android:background="@drawable/round_btn"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
