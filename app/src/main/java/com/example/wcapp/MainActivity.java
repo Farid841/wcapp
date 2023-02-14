@@ -1,9 +1,9 @@
 package com.example.wcapp;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.res.ResourcesCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import org.osmdroid.api.IMapController;
 import org.osmdroid.bonuspack.routing.OSRMRoadManager;
@@ -12,7 +12,6 @@ import org.osmdroid.bonuspack.routing.RoadManager;
 import org.osmdroid.bonuspack.routing.RoadNode;
 import org.osmdroid.config.Configuration;
 import org.osmdroid.events.MapEventsReceiver;
-import org.osmdroid.tileprovider.tilesource.HEREWeGoTileSource;
 import org.osmdroid.tileprovider.tilesource.ITileSource;
 import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
@@ -20,16 +19,12 @@ import org.osmdroid.views.CustomZoomButtonsController;
 import org.osmdroid.views.MapView;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
-import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.location.Address;
 import android.location.Geocoder;
@@ -40,10 +35,6 @@ import android.location.LocationManager;
 import android.os.StrictMode;
 import android.text.TextUtils;
 import android.util.Base64;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
@@ -54,10 +45,6 @@ import android.widget.SearchView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.LocationSource;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.gson.Gson;
@@ -65,21 +52,15 @@ import com.google.gson.GsonBuilder;
 
 import org.osmdroid.views.overlay.MapEventsOverlay;
 import org.osmdroid.views.overlay.Marker;
-import org.osmdroid.views.overlay.Overlay;
-import org.osmdroid.views.overlay.Polygon;
 import org.osmdroid.views.overlay.Polyline;
-import org.osmdroid.views.overlay.TilesOverlay;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
-import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
-import okhttp3.Response;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Retrofit;
@@ -87,27 +68,19 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
-    private String AUTH = "Basic " + Base64.encodeToString("hbella:bella7905Hb@".getBytes(), Base64.NO_WRAP);
-    private OkHttpClient client = new OkHttpClient.Builder()
-            .addInterceptor(new Interceptor() {
-                @Override
-                public Response intercept(Chain chain) throws IOException {
-                    okhttp3.Request newRequest = chain.request().newBuilder()
-                            .addHeader("Authorization", AUTH)
-                            .build();
-                    return chain.proceed(newRequest);
-                }
+    private static final String AUTH = "Basic " + Base64.encodeToString("hbella:bella7905Hb@".getBytes(), Base64.NO_WRAP);
+    private final OkHttpClient client = new OkHttpClient.Builder()
+            .addInterceptor(chain -> {
+                okhttp3.Request newRequest = chain.request().newBuilder()
+                        .addHeader("Authorization", AUTH)
+                        .build();
+                return chain.proceed(newRequest);
             })
             .build();
     private SearchView searchView ;
 
-    private MapView map_view;
     private MapView map;
 
-    private ListView list ;
-    private MaterialButton localiser;
-    private MaterialButton add;
-    private MaterialButton account;
     private EditText adressadd;
     AlertDialog alert_adresse;
     AlertDialog alert_itiniraire;
@@ -117,11 +90,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private IMapController mapController;
     private LocationManager locationManager;
 
-    private Context context;
 
-    private MainActivity mainActivity;
 
-    private ArrayList<GeoPoint> waypoints_iti = new ArrayList<GeoPoint>();
+    private final ArrayList<GeoPoint> waypoints_iti = new ArrayList<>();
 
     private Boolean LoggedIn = false;
 
@@ -152,9 +123,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         // Initialiser la vue de la carte
 
-         localiser = findViewById(R.id.localiser);
-         add = findViewById(R.id.add);
-            account = findViewById(R.id.account);
+        MaterialButton localiser = findViewById(R.id.localiser);
+        MaterialButton add = findViewById(R.id.add);
+        MaterialButton account = findViewById(R.id.account);
 
             account.setOnClickListener(v -> {
               Intent intent = new Intent(MainActivity.this, Account.class);
@@ -166,14 +137,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
         final ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line);
         searchView = findViewById(R.id.searchview);
-        list = findViewById(R.id.list);
+        ListView list = findViewById(R.id.list);
         list.setAdapter(adapter);
         Configuration.getInstance().setUserAgentValue(getPackageName());
 
-        final ITileSource tileSource = TileSourceFactory.MAPNIK;
+        final ITileSource tileSource = TileSourceFactory.DEFAULT_TILE_SOURCE;
 
         map.setTileSource(tileSource);
-        map.setBuiltInZoomControls(false);
+       map.setBuiltInZoomControls(false);
         map.setMultiTouchControls(true);
         map.getZoomController().setVisibility(CustomZoomButtonsController.Visibility.NEVER);
 
@@ -187,7 +158,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         GeoPoint startPoint = new GeoPoint(48.7109981, 2.168666);
         mapController.setCenter(startPoint);
         map.setTilesScaledToDpi(true);
-        Geocoder geocoder = new Geocoder(MainActivity.this);
+       // Geocoder geocoder = new Geocoder(MainActivity.this);
 
 
 //         Initialiser le gestionnaire de localisation
@@ -210,9 +181,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
 
 
-        add.setOnClickListener((v -> {
-            Modal();
-        }));
+        add.setOnClickListener((v -> Modal()));
 
         MainActivity that = this;
         localiser.setOnClickListener((v -> {
@@ -248,56 +217,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     adapter.clear();
                     return false;
                 }
-                // Utiliser l'objet Geocoder pour effectuer une recherche d'adresse
-                Geocoder geocoder = new Geocoder(MainActivity.this);
-                try {
-                    List<Address> addresses = geocoder.getFromLocationName(searchString, 1);
-                    if (addresses != null && addresses.size() > 0) {
-                        // Si une adresse a été trouvée, récupérer les coordonnées de l'adresse
-                        Address address = addresses.get(0);
-                        for (Address address1 : addresses) {
-                            adapter.add(address1.getAddressLine(0));
-                        }
-                        double latitude = address.getLatitude();
-                        double longitude = address.getLongitude();
 
-                        // Créer un objet LatLng pour stocker les coordonnées de l'adresse
-                        GeoPoint geoPoint = new GeoPoint(latitude, longitude);
-
-                        // Vérifier si le marqueur de l'adresse existe déjà
-                        if (marker != null) {
-                            // Si le marqueur existe déjà, mettre à jour sa position et le rendre visible
-//                            map.getOverlays().clear();
-//                            marker.setPosition(geoPoint);
-//                            marker.setTitle("Adresse");
-//                            map.getOverlays().add(marker);
-//                            map.invalidate();
-//                            mapController.setZoom(18d);
-                        } else {
-                            // Si le marqueur n'existe pas, créer un nouveau marqueur et l'ajouter à la carte
-//                            map.getOverlays().clear();
-//                            marker.setPosition(geoPoint);
-//                            marker.setTitle("Adresse");
-//                            map.getOverlays().add(marker);
-//                            map.invalidate();
-//                            mapController.setZoom(18d);
-                        }
-//
-                        // Déplacer la caméra de la carte vers l'adresse trouvée
-                        //mapController.setCenter(geoPoint);
-                    } else {
-                        adapter.clear();
-                        // Si aucune adresse n'a été trouvée, masquer le marqueur
-                        marker.setVisible(false);
-                    }
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
 
                 return false;
             }
-            ArrayList<Marker> myMarkers= new ArrayList<>();
+            final ArrayList<Marker> myMarkers= new ArrayList<>();
             @Override
             public boolean onQueryTextSubmit(String newText) {
                 Marker marker = new Marker(map);
@@ -323,40 +247,28 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                     GeoPoint geoPoint = new GeoPoint(latitude, longitude);
 
                     // Vérifier si le marqueur de l'adresse existe déjà
-                    if (marker != null) {
-                        // Si le marqueur existe déjà, mettre à jour sa position et le rendre visible
-                        //map.getOverlays().clear();
-                        marker.setPosition(geoPoint);
-                        marker.setTitle(addresses.get(0).getAddressLine(0));
-                        Drawable localisation = ResourcesCompat.getDrawable(getResources(), R.drawable.here, null);
-                        //Bitmap bitmap = ((BitmapDrawable) localisation).getBitmap();
-                       // Drawable dr = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, (int) (48.0f * getResources().getDisplayMetrics().density), (int) (48.0f * getResources().getDisplayMetrics().density), true));
-                        marker.setIcon(localisation);
-                        marker.setId("new localisation");
-                        for (Marker m : myMarkers) {
-                            if (m.getId().toString() == "new localisation"){
-                                map.getOverlays().remove(m);
-                            }
-
+                    // Si le marqueur existe déjà, mettre à jour sa position et le rendre visible
+                    //map.getOverlays().clear();
+                    marker.setPosition(geoPoint);
+                    marker.setTitle(addresses.get(0).getAddressLine(0));
+                    Drawable localisation = ResourcesCompat.getDrawable(getResources(), R.drawable.here, null);
+                    //Bitmap bitmap = ((BitmapDrawable) localisation).getBitmap();
+                    // Drawable dr = new BitmapDrawable(getResources(), Bitmap.createScaledBitmap(bitmap, (int) (48.0f * getResources().getDisplayMetrics().density), (int) (48.0f * getResources().getDisplayMetrics().density), true));
+                    marker.setIcon(localisation);
+                    marker.setId("new localisation");
+                    for (Marker m : myMarkers) {
+                        if (Objects.equals(m.getId(), "new localisation")){
+                            map.getOverlays().remove(m);
                         }
 
-                        //marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-
-
-                        mapController.setZoom(11d);
-                        myMarkers.add(marker);
-                        map.invalidate();
-
-                    } else {
-                        // Si le marqueur n'existe pas, créer un nouveau marqueur et l'ajouter à la carte
-                        //map.getOverlays().clear();
-                        marker.setPosition(geoPoint);
-                        marker.setTitle("Adresse");
-                        map.getOverlays().add(marker);
-                        map.invalidate();
-                        mapController.setZoom(11d);
-
                     }
+
+                    //marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+
+
+                    mapController.setZoom(16d);
+                    myMarkers.add(marker);
+                    map.invalidate();
 
                     // Déplacer la caméra de la carte vers l'adresse trouvée
                     mapController.setCenter(geoPoint);
@@ -419,7 +331,7 @@ public  void FetchData(){
 
     call.enqueue(new Callback<List<WcAPI>>() {
         @Override
-        public void onResponse(Call<List<WcAPI>> call, retrofit2.Response<List<WcAPI>> response) {
+        public void onResponse(@NonNull Call<List<WcAPI>> call, @NonNull retrofit2.Response<List<WcAPI>> response) {
             if (!response.isSuccessful()) {
                 Toast.makeText(MainActivity.this, "Code: " + response.code(), Toast.LENGTH_SHORT).show();
                 return;
@@ -591,13 +503,6 @@ public void Itiniraire(GeoPoint p){
 
                            WcInterface wcInterface =  retrofit.create(WcInterface.class);
 
-                            WcAPI wcAPI = new WcAPI(
-                                    longitude,
-                                    latitude,
-                                    URLEncoder.encode(adressadd.getText().toString()),
-                                    "0",
-                                    "null"
-                            );
 
                            Call<List<WcAPI>>call = wcInterface.postWcAPI(longitude, latitude,  URLEncoder.encode(adressadd.getText().toString()),id_user,"0", "null");
 
@@ -607,16 +512,15 @@ public void Itiniraire(GeoPoint p){
                                 public void onResponse(Call<List<WcAPI>> call, retrofit2.Response<List<WcAPI>> response) {
                                     if (response.isSuccessful()) {
                                         Toast.makeText(MainActivity.this, "WC ajouté", Toast.LENGTH_SHORT).show();
-                                        Log.i("Post submitted to API.", wcAPI.toString());
                                     } else {
-                                        Toast.makeText(MainActivity.this, "Erreur lors de l'ajout", Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(MainActivity.this, "WC ajouté", Toast.LENGTH_SHORT).show();
                                     }
                                 }
 
                                 @Override
                                              public void onFailure(Call<List<WcAPI>> call, Throwable t) {
-                                                 Toast.makeText(MainActivity.this,  t.getMessage(), Toast.LENGTH_LONG).show();
-                                                 Log.e("ERROR: ", t.getMessage());
+                                                 Toast.makeText(MainActivity.this, "Erreur lors de l'ajout ", Toast.LENGTH_LONG).show();
+
                                              }
                                          });
 
@@ -625,6 +529,7 @@ public void Itiniraire(GeoPoint p){
                             Marker newWc = new Marker(map);
 
                             newWc.setTitle(adressadd.getText().toString());
+                            newWc.setSubDescription("WC en cours de vérification");
                             newWc.setPosition(geoPoint);
                             Drawable wc = ResourcesCompat.getDrawable(getResources(), R.drawable.wc, null);
                             newWc.setIcon(wc);

@@ -9,9 +9,10 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/account"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginStart="50dp"
+        android:layout_marginEnd="20dp"
         android:layout_marginBottom="30dp"
         android:background="@drawable/round_btn"
         android:drawableStart="@drawable/plus"
@@ -20,13 +21,14 @@
         app:iconGravity="textStart"
         app:iconPadding="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/localiser"
         tools:ignore="SpeakableTextPresentCheck" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/localiser"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:layout_marginBottom="30dp"
         android:background="@drawable/round_btn"
         android:tint="#4C4B7B"
@@ -42,8 +44,8 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/add"
-        android:layout_width="75dp"
-        android:layout_height="75dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
 
         android:layout_marginStart="20dp"
         android:layout_marginEnd="50dp"

@@ -57,6 +57,7 @@ public class Account extends AppCompatActivity {
         btnLogout = findViewById(R.id.logout);
 
         Retour = findViewById(R.id.Retour);
+
         Retour.setOnClickListener(v -> {
             Intent intent = new Intent(Account.this, MainActivity.class);
             intent.putExtra("id_user", id_user);
@@ -89,10 +90,8 @@ public class Account extends AppCompatActivity {
                 }
                 List<User> users = response.body();
                 for (User user : users) {
-                    if(user.getId().equals(id_user)){
-                        String content = "";
-                        content += "User: " + user.getUser();
-                        content += "Id: " + user.getId();
+                    if(id_user!=null && id_user!="0"){
+
                         apiText.setText(user.getUser());
                     }else{
                         Intent back = new Intent(Account.this, Login.class);
